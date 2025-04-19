@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: Task Board
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskboard
+    username: postgres
+    password: postgres
+  liquibase:
+    change-log: classpath:db/db.changelog-master.xml
+    enabled: true
+
+# API Documentation (Swagger)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  packages-to-scan: com.worldline.taskboard.controller
+
+logging:
+  level:
+    com.worldline.taskboard: INFO
+    org.springframework: WARN
