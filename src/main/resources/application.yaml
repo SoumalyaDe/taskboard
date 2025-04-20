@@ -8,6 +8,10 @@ spring:
   liquibase:
     change-log: classpath:db/db.changelog-master.xml
     enabled: true
+  security:
+    user:
+      name: admin
+      password: password
 
 # API Documentation (Swagger)
 springdoc:

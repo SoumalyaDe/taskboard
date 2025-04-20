@@ -80,7 +80,7 @@ class TaskBoardServiceImplTest {
         var taskLists = List.of(taskList);
         var tasks = List.of(task);
         when(taskListRepository.findAll()).thenReturn(taskLists);
-        when(taskListRepository.findByListId(taskList.id())).thenReturn(tasks);
+        when(taskRepository.findByListId(taskList.id())).thenReturn(tasks);
 
         var result = taskBoardService.getAllLists();
 
@@ -90,7 +90,7 @@ class TaskBoardServiceImplTest {
         assertEquals(1, result.getFirst().getTasks().size());
         assertEquals(task.id(), result.getFirst().getTasks().getFirst().taskId());
         verify(taskListRepository).findAll();
-        verify(taskListRepository).findByListId(taskList.id());
+        verify(taskRepository).findByListId(taskList.id());
     }
 
     @Test
@@ -134,12 +134,12 @@ class TaskBoardServiceImplTest {
                 .description(TASK_DESCRIPTION_TEST)
                 .build();
         when(taskListRepository.findByName(TASK_LIST_PERSONAL)).thenReturn(Optional.of(taskList));
-        when(taskListRepository.findByListId(taskList.id())).thenReturn(List.of(task));
+        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(task));
 
         taskBoardService.addTaskToList(TASK_LIST_PERSONAL, inputTask);
 
         verify(taskListRepository).findByName(TASK_LIST_PERSONAL);
-        verify(taskListRepository).findByListId(taskList.id());
+        verify(taskRepository).findByListId(taskList.id());
         verify(taskRepository).save(any(Task.class));
     }
 
@@ -165,12 +165,12 @@ class TaskBoardServiceImplTest {
     @Test
     void addTaskToList_whenTaskWithSameNameExists_shouldThrowIllegalArgumentException() {
         when(taskListRepository.findByName(TASK_LIST_PERSONAL)).thenReturn(Optional.of(taskList));
-        when(taskListRepository.findByListId(taskList.id())).thenReturn(List.of(task));
+        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(task));
 
         assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskDto));
 
         verify(taskListRepository).findByName(TASK_LIST_PERSONAL);
-        verify(taskListRepository).findByListId(taskList.id());
+        verify(taskRepository).findByListId(taskList.id());
         verify(taskRepository, never()).save(any(Task.class));
     }
 

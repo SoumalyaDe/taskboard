@@ -35,7 +35,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
         var taskListDtos = new ArrayList<TaskListDto>();
         taskLists.forEach(taskList -> {
             var taskListDto = TaskListDto.of(taskList);
-            var taskDtos = taskListRepository.findByListId(taskList.id())
+            var taskDtos = taskRepository.findByListId(taskList.id())
                     .stream()
                     .map(TaskDto::of)
                     .toList();
@@ -82,7 +82,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
         var taskListEntity = taskListRepository.findByName(taskListName)
                 .orElseThrow(() ->
                         new EntityNotFoundException(String.format("Task list with name %s not found", taskListName)));
-        if (taskListRepository.findByListId(taskListEntity.id()).stream()
+        if (taskRepository.findByListId(taskListEntity.id()).stream()
                 .map(Task::name)
                 .anyMatch(taskDto.name()::equals)) {
             throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskDto.name(), taskListName));

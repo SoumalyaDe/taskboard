@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.4.4"
+    id("org.springframework.boot") version "3.2.5"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -26,10 +26,10 @@ dependencies {
 
     //Database
     implementation("org.liquibase:liquibase-core")
+    implementation("org.postgresql:postgresql:42.7.4")
 
     //Development tools
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
 
@@ -51,4 +51,5 @@ tasks.withType<Test> {
 
 tasks.bootBuildImage {
     imageName.set("worldline/taskboard:${project.version}")
+    builder.set("paketobuildpacks/builder-jammy-base:latest")
 }
