@@ -82,7 +82,9 @@ public class TaskBoardServiceImpl implements TaskBoardService {
         var taskListEntity = taskListRepository.findByName(taskListName)
                 .orElseThrow(() ->
                         new EntityNotFoundException(String.format("Task list with name %s not found", taskListName)));
-        if (taskListRepository.findByListId(taskListEntity.id()).stream().map(Task::name).anyMatch(taskDto.name()::equals)) {
+        if (taskListRepository.findByListId(taskListEntity.id()).stream()
+                .map(Task::name)
+                .anyMatch(taskDto.name()::equals)) {
             throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskDto.name(), taskListName));
         } else {
             var taskEntity = TaskDto.toEntity(taskDto)
@@ -94,6 +96,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
     }
 
     @Override
+    @Transactional
     public TaskDto updateTask(Long taskId, TaskDto task) {
         return null;
     }
@@ -116,6 +119,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
     }
 
     @Override
+    @Transactional
     public TaskDto moveTaskToList(Long taskId, Long newListId) {
         return null;
     }
