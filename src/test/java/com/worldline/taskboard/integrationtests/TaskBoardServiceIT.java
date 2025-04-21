@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static com.worldline.taskboard.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-//@Disabled
 public class TaskBoardServiceIT extends BaseIntegrationTest {
 
 //    @Container

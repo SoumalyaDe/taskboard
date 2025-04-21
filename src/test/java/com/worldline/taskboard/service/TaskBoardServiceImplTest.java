@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.worldline.taskboard.TestConstants.*;
+import static com.worldline.taskboard.service.TaskBoardServiceImpl.TASK_LIST_NOT_FOUND_MESSAGE;
+import static com.worldline.taskboard.service.TaskBoardServiceImpl.TASK_NOT_FOUND_MESSAGE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +48,6 @@ class TaskBoardServiceImplTest {
     void setUp() {
         now = LocalDateTime.now();
 
-        Object TestConstants;
         taskList = TaskList.builder()
                 .id(TEST_TASK_LIST_ID)
                 .name(TASK_LIST_PERSONAL)
@@ -88,7 +87,7 @@ class TaskBoardServiceImplTest {
         assertEquals(taskList.id(), result.getFirst().getListId());
         assertEquals(taskList.name(), result.getFirst().getName());
         assertEquals(1, result.getFirst().getTasks().size());
-        assertEquals(task.id(), result.getFirst().getTasks().getFirst().taskId());
+        assertEquals(task.getId(), result.getFirst().getTasks().getFirst().taskId());
         verify(taskListRepository).findAll();
         verify(taskRepository).findByListId(taskList.id());
     }
@@ -216,5 +215,55 @@ class TaskBoardServiceImplTest {
         verify(taskListRepository, never()).delete(any(TaskList.class));
     }
 
-    //TODO: tests for moveTasktoList
+    @Test
+    void moveTaskToList_success() {
+        var targetListId = 999L;
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(task));
+        when(taskListRepository.existsById(targetListId)).thenReturn(true);
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+
+        taskBoardService.moveTaskToList(TEST_TASK_ID_1, targetListId);
+
+        assertEquals(targetListId, task.getListId());
+        verify(taskRepository).findById(TEST_TASK_ID_1);
+        verify(taskListRepository).existsById(targetListId);
+        verify(taskRepository).save(task);
+    }
+
+    @Test
+    void moveTaskToList_TaskNotFound_ThrowsEntityNotFoundException() {
+        var nonExistentTaskId = 555L;
+        var targetListId = 999L;
+        when(taskRepository.findById(nonExistentTaskId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> taskBoardService.moveTaskToList(nonExistentTaskId, targetListId)
+        );
+
+        assertEquals(String.format(TASK_NOT_FOUND_MESSAGE, nonExistentTaskId), exception.getMessage());
+        verify(taskRepository).findById(nonExistentTaskId);
+        verify(taskListRepository, never()).existsById(anyLong());
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    void moveTaskToList_ListNotFound_ThrowsEntityNotFoundException() {
+        // Arrange
+        Long nonExistentListId = 999L;
+
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(task));
+        when(taskListRepository.existsById(nonExistentListId)).thenReturn(false);
+
+        // Act & Assert
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> taskBoardService.moveTaskToList(TEST_TASK_ID_1, nonExistentListId)
+        );
+
+        assertEquals(String.format(TASK_LIST_NOT_FOUND_MESSAGE, nonExistentListId), exception.getMessage());
+        verify(taskRepository, times(1)).findById(TEST_TASK_ID_1);
+        verify(taskListRepository, times(1)).existsById(nonExistentListId);
+        verify(taskRepository, never()).save(any(Task.class));
+    }
 }

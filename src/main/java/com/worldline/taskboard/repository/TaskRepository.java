@@ -9,8 +9,4 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends CrudRepository<Task, Long> {
     List<Task> findByListId(Long listId);
-
-    /*@Query("UPDATE task SET list_id = :newListId WHERE id = :taskId")
-    void updateTaskListId(@Param("taskId") Long taskId,
-                          @Param("newListId") Long newListId);*/
 }

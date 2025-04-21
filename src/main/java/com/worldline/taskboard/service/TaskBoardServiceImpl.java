@@ -25,6 +25,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskBoardServiceImpl implements TaskBoardService {
 
+    static final String TASK_NOT_FOUND_MESSAGE = "Task not found for id=%d";
+    static final String TASK_LIST_NOT_FOUND_MESSAGE = "Task List not found with id=%d";
+
     private final TaskListRepository taskListRepository;
     private final TaskRepository taskRepository;
 
@@ -84,7 +87,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
                 .orElseThrow(() ->
                         new EntityNotFoundException(String.format("Task list with name %s not found", taskListName)));
         if (taskRepository.findByListId(taskListEntity.id()).stream()
-                .map(Task::name)
+                .map(Task::getName)
                 .anyMatch(taskRequestDto.name()::equals)) {
             throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskRequestDto.name(), taskListName));
         } else {
@@ -106,7 +109,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
     @Transactional
     public void deleteTask(Long taskId) {
         var task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskId));
+                .orElseThrow(() -> new EntityNotFoundException(String.format(TASK_NOT_FOUND_MESSAGE, taskId)));
         taskRepository.delete(task);
     }
 
@@ -115,13 +118,19 @@ public class TaskBoardServiceImpl implements TaskBoardService {
     @Transactional
     public void deleteList(Long listId) {
         var taskList = taskListRepository.findById(listId)
-                .orElseThrow(() -> new EntityNotFoundException("Task List not found with id: " + listId));
+                .orElseThrow(() -> new EntityNotFoundException(String.format(TASK_LIST_NOT_FOUND_MESSAGE, listId)));
         taskListRepository.delete(taskList);
     }
 
     @Override
     @Transactional
-    public TaskDto moveTaskToList(Long taskId, Long newListId) {
-        return null;
+    public void moveTaskToList(Long taskId, Long newListId) {
+        var task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(TASK_NOT_FOUND_MESSAGE, taskId)));
+        if (!taskListRepository.existsById(newListId)) {
+            throw new EntityNotFoundException(String.format(TASK_LIST_NOT_FOUND_MESSAGE, newListId));
+        }
+        task.setListId(newListId);
+        taskRepository.save(task);
     }
 }

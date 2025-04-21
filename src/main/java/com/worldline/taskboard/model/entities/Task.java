@@ -1,23 +1,27 @@
 package com.worldline.taskboard.model.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
 @Table("task")
+@Data
 @Builder(toBuilder = true)
-public record Task(@Id
-                   Long id,
-                   Long listId,
-                   String name,
-                   String description,
-                   LocalDateTime createdAt,
-                   LocalDateTime updatedAt) {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Task {
 
-    //no-arg constructor for Spring Data JDBC
-    public Task() {
-        this(null, null, null, null, null, null);
-    }
+    @Id
+    private Long id;
+
+    private Long listId;
+    private String name;
+    private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -20,11 +20,11 @@ public record TaskDto(
 
     public static TaskDto of(Task entity) {
         var taskRequest = TaskRequestDto.builder()
-                .name(entity.name())
-                .description(entity.description())
+                .name(entity.getName())
+                .description(entity.getDescription())
                 .build();
         return TaskDto.builder()
-                .taskId(entity.id())
+                .taskId(entity.getId())
                 .taskRequest(taskRequest)
                 .build();
     }

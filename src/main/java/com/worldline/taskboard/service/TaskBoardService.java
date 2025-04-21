@@ -11,6 +11,7 @@ public interface TaskBoardService {
 
     TaskListDto createList(String name);
 
+    //TODO: Might be needed in future, so created in advance
     TaskDto createTask(TaskRequestDto taskRequestDto);
 
     void addTaskToList(String taskListName, TaskRequestDto taskRequestDto);
@@ -21,5 +22,5 @@ public interface TaskBoardService {
 
     void deleteList(Long listId);
 
-    TaskDto moveTaskToList(Long taskId, Long newListId);
+    void moveTaskToList(Long taskId, Long newListId);
 }

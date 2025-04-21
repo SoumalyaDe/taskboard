@@ -97,17 +97,18 @@ public class TaskBoardController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/tasks/{taskId}/move")
+    @PutMapping("/tasks/{taskId}/move/{listId}")
     @Operation(summary = "Move a Task to another list", description = "Move a Task from one list to another")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Task moved"),
             @ApiResponse(responseCode = "404", description = "Task or target list not found"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
-    public ResponseEntity<TaskDto> moveTaskToList(
+    public ResponseEntity<String> moveTaskToList(
             @PathVariable Long taskId,
             @PathVariable Long listId) {
-        var TaskDto = taskBoardService.moveTaskToList(taskId, listId);
-        return new ResponseEntity<>(TaskDto, HttpStatus.OK);
+        taskBoardService.moveTaskToList(taskId, listId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(String.format("Task with id=%d moved to task list with id=%d", taskId, listId));
     }
 }
