@@ -2,6 +2,7 @@ package com.worldline.taskboard.integrationtests;
 
 import com.worldline.taskboard.exceptions.DuplicateEntityException;
 import com.worldline.taskboard.model.dtos.TaskDto;
+import com.worldline.taskboard.model.dtos.TaskRequestDto;
 import com.worldline.taskboard.repository.TaskListRepository;
 import com.worldline.taskboard.repository.TaskRepository;
 import com.worldline.taskboard.service.TaskBoardService;
@@ -11,8 +12,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.worldline.taskboard.TestContstants.TASK_LIST_PERSONAL;
-import static com.worldline.taskboard.TestContstants.TASK_LIST_WORK;
+import static com.worldline.taskboard.TestContstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Disabled
@@ -62,37 +62,46 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
         assertEquals(TASK_LIST_PERSONAL, lists.get(1).getName());
 
         // Add tasks to a list
-        var task1 = TaskDto.builder()
+        var taskRequest1 = TaskRequestDto.builder()
                 .name("Call client")
                 .description("Discuss the new project")
                 .build();
-        var task2 = TaskDto.builder()
+        var task1 = TaskDto.builder()
+                .requestDto(taskRequest1)
+                .build();
+        var taskRequest2 = TaskRequestDto.builder()
                 .name("Send email")
                 .description("Send email to all stakeholders")
                 .build();
-        taskBoardService.addTaskToList(TASK_LIST_WORK, task1);
-        taskBoardService.addTaskToList(TASK_LIST_WORK, task2);
+        var task2 = TaskDto.builder()
+                .requestDto(taskRequest2)
+                .build();
+        taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest1);
+        taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest2);
 
         lists = taskBoardService.getAllLists();
         assertEquals(2, lists.getFirst().getTasks().size());
-        assertEquals("Call client", lists.getFirst().getTasks().getFirst().name());
-        assertEquals("Call client", lists.getFirst().getTasks().get(1).name());
+        assertEquals("Call client", lists.getFirst().getTasks().getFirst().requestDto().name());
+        assertEquals("Call client", lists.getFirst().getTasks().get(1).requestDto().name());
         assertTrue(lists.get(1).getTasks().isEmpty());
 
         // Update a task
-        var newTask = TaskDto.builder()
+        var newTaskRequest = TaskRequestDto.builder()
                 .name("Meet client")
                 .description("Discuss and finalize the new project")
                 .build();
+        var newTask = TaskDto.builder()
+                .requestDto(newTaskRequest)
+                .build();
         var updatedTask = taskBoardService.updateTask(task1.taskId(), newTask);
-        assertEquals("Call client updated", updatedTask.name());
-        assertEquals("Discuss project updates and timeline", updatedTask.description());
+        assertEquals("Call client updated", updatedTask.requestDto().name());
+        assertEquals("Discuss project updates and timeline", updatedTask.requestDto().description());
 
         // Delete a task
         taskBoardService.deleteTask(task2.taskId());
         lists = taskBoardService.getAllLists();
         assertEquals(1, lists.getFirst().getTasks().size());
-        assertEquals("Finish report", lists.getFirst().getTasks().getFirst().name());
+        assertEquals("Finish report", lists.getFirst().getTasks().getFirst().requestDto().name());
 
         // Move task to another list
        /* taskBoardService.moveTaskToList(task1.id(), personalList.id());
@@ -123,19 +132,25 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
     @Test
     void addTaskToList_shouldThrowExceptionOnDuplicateTaskName() {
         var taskList = taskBoardService.createList(TASK_LIST_PERSONAL);
-        var task = TaskDto.builder()
-                .name("Personal Task")
-                .description("Description xyz")
+        var taskRequest1 = TaskRequestDto.builder()
+                .name(TASK_NAME_TEST)
+                .description(TASK_DESCRIPTION_TEST)
                 .build();
-        taskBoardService.addTaskToList(TASK_LIST_PERSONAL, task);
+        var task = TaskDto.builder()
+                .requestDto(taskRequest1)
+                .build();
+        taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskRequest1);
+        var taskRequest2 = TaskRequestDto.builder()
+                .name(TASK_NAME_TEST)
+                .description(TASK_DESCRIPTION_ANOTHER)
+                .build();
         var anotherTask = TaskDto.builder()
-                .name("Personal Task")
-                .description("Another description")
+                .requestDto(taskRequest2)
                 .build();
 
         var exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> taskBoardService.addTaskToList(taskList.getName(), anotherTask));
+                () -> taskBoardService.addTaskToList(taskList.getName(), taskRequest2));
 
         assertEquals("A task with name 'Personal Task' already exists for the task list 'Personal'.", exception.getMessage());
     }

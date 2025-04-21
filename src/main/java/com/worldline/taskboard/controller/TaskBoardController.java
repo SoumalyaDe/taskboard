@@ -2,6 +2,7 @@ package com.worldline.taskboard.controller;
 
 import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
+import com.worldline.taskboard.model.dtos.TaskRequestDto;
 import com.worldline.taskboard.service.TaskBoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,7 +32,7 @@ public class TaskBoardController {
     }
 
     @PostMapping("/lists")
-    @Operation(summary = "Create a new TaskDto list", description = "Create an empty TaskDto list with a given name")
+    @Operation(summary = "Create a new Task list", description = "Create an empty Task list with a given name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Task list created"),
             @ApiResponse(responseCode = "400", description = "Invalid request"),
@@ -43,7 +44,7 @@ public class TaskBoardController {
     }
 
     @PostMapping("/lists/{listName}/tasks")
-    @Operation(summary = "Add a TaskDto to a list", description = "Add a new TaskDto to an existing list")
+    @Operation(summary = "Add a Task to a list", description = "Add a new Task to an existing list")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Task added"),
             @ApiResponse(responseCode = "404", description = "Task list not found"),
@@ -51,16 +52,16 @@ public class TaskBoardController {
     })
     public ResponseEntity<String> addTaskToList(
             @PathVariable String listName,
-            @Valid @RequestBody TaskDto taskDto
+            @Valid @RequestBody TaskRequestDto taskRequest
     ) {
-        taskBoardService.addTaskToList(listName, taskDto);
+        taskBoardService.addTaskToList(listName, taskRequest);
         return ResponseEntity.status(HttpStatus.OK)
-                .body("TaskDto added to the TaskDto list with name=" + listName);
+                .body("Task added to the task list =" + listName);
     }
 
 
     @PutMapping("/tasks/{taskId}")
-    @Operation(summary = "Update a TaskDto", description = "Update the name and description of a TaskDto")
+    @Operation(summary = "Update a Task", description = "Update the name and description of a Task")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Task updated"),
             @ApiResponse(responseCode = "404", description = "Task not found"),

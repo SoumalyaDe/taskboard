@@ -6,7 +6,4 @@
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
     <include file="db/changelogs/01-create-tables.xml"/>
-    <!--<include file="db/changelog/v1.0.0/02-initial-data.xml"/>
-    <include file="db/changelog/v1.0.1/01-add-indexes.xml"/>-->
-
 </databaseChangeLog>

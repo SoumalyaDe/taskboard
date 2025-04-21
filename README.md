@@ -64,6 +64,9 @@ The application will be available at http://localhost:8080.
 5. Access Swagger UI
 
 Swagger UI is available at http://localhost:8080/swagger-ui.html for testing the API endpoints interactively.
+Username: admin, Password: password for local
+
+![img_1.png](img_1.png)
 
 6. Run Tests
 

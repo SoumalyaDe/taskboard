@@ -4,6 +4,7 @@ import com.worldline.taskboard.exceptions.DuplicateEntityException;
 import com.worldline.taskboard.exceptions.EntityNotFoundException;
 import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
+import com.worldline.taskboard.model.dtos.TaskRequestDto;
 import com.worldline.taskboard.model.entities.Task;
 import com.worldline.taskboard.model.entities.TaskList;
 import com.worldline.taskboard.repository.TaskListRepository;
@@ -43,7 +44,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
             taskListDtos.add(taskListDto);
         });
 
-        return taskListDtos;
+        return taskListDtos.isEmpty() ? List.of() : taskListDtos;
     }
 
     @Override
@@ -64,8 +65,8 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public TaskDto createTask(TaskDto taskDto) {
-        var taskEntity = TaskDto.toEntity(taskDto)
+    public TaskDto createTask(TaskRequestDto taskRequestDto) {
+        var taskEntity = TaskDto.toEntity(taskRequestDto)
                 .toBuilder()
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -75,7 +76,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public void addTaskToList(String taskListName, TaskDto taskDto) {
+    public void addTaskToList(String taskListName, TaskRequestDto taskRequestDto) {
         if (Strings.isBlank(taskListName)) {
             throw new IllegalArgumentException("List name must not be blank!");
         }
@@ -84,10 +85,10 @@ public class TaskBoardServiceImpl implements TaskBoardService {
                         new EntityNotFoundException(String.format("Task list with name %s not found", taskListName)));
         if (taskRepository.findByListId(taskListEntity.id()).stream()
                 .map(Task::name)
-                .anyMatch(taskDto.name()::equals)) {
-            throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskDto.name(), taskListName));
+                .anyMatch(taskRequestDto.name()::equals)) {
+            throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskRequestDto.name(), taskListName));
         } else {
-            var taskEntity = TaskDto.toEntity(taskDto)
+            var taskEntity = TaskDto.toEntity(taskRequestDto)
                     .toBuilder()
                     .listId(taskListEntity.id())
                     .build();

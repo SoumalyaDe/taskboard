@@ -2,8 +2,8 @@ package com.worldline.taskboard.service;
 
 import com.worldline.taskboard.exceptions.DuplicateEntityException;
 import com.worldline.taskboard.exceptions.EntityNotFoundException;
-import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
+import com.worldline.taskboard.model.dtos.TaskRequestDto;
 import com.worldline.taskboard.model.entities.Task;
 import com.worldline.taskboard.model.entities.TaskList;
 import com.worldline.taskboard.repository.TaskListRepository;
@@ -41,7 +41,7 @@ class TaskBoardServiceImplTest {
     private TaskList taskList;
     private Task task;
     private TaskListDto listDto;
-    private TaskDto taskDto;
+    private TaskRequestDto taskRequestDto;
     private LocalDateTime now;
 
     @BeforeEach
@@ -68,8 +68,7 @@ class TaskBoardServiceImplTest {
                 .tasks(new ArrayList<>())
                 .build();
 
-        taskDto = TaskDto.builder()
-                .taskId(TEST_TASK_ID_1)
+        taskRequestDto = TaskRequestDto.builder()
                 .name(TASK_NAME_TEST)
                 .description(TASK_DESCRIPTION_TEST)
                 .build();
@@ -118,18 +117,18 @@ class TaskBoardServiceImplTest {
     void createTask_shouldSaveTask() {
         when(taskRepository.save(any(Task.class))).thenReturn(task);
 
-        var result = taskBoardService.createTask(taskDto);
+        var result = taskBoardService.createTask(taskRequestDto);
 
         assertNotNull(result);
-        assertEquals(taskDto.taskId(), result.taskId());
-        assertEquals(taskDto.name(), result.name());
-        assertEquals(taskDto.description(), result.description());
+        assertEquals(TEST_TASK_ID_1, result.taskId());
+        assertEquals(taskRequestDto.name(), result.requestDto().name());
+        assertEquals(taskRequestDto.description(), result.requestDto().description());
         verify(taskRepository).save(any(Task.class));
     }
 
     @Test
     void addTaskToList_shouldAddTaskToList() {
-        var inputTask = TaskDto.builder()
+        var inputTask = TaskRequestDto.builder()
                 .name(TASK_NAME_OTHER)
                 .description(TASK_DESCRIPTION_TEST)
                 .build();
@@ -146,7 +145,7 @@ class TaskBoardServiceImplTest {
     @ParameterizedTest
     @NullAndEmptySource
     void addTaskToList_whenListNameIsBlank_shouldThrowIllegalArgumentException(String listName) {
-        assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(listName, taskDto));
+        assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(listName, taskRequestDto));
     }
 
     @Test
@@ -156,7 +155,7 @@ class TaskBoardServiceImplTest {
         when(taskListRepository.findByName(listName)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () ->
-                taskBoardService.addTaskToList(listName, taskDto));
+                taskBoardService.addTaskToList(listName, taskRequestDto));
 
         verify(taskListRepository).findByName(listName);
         verify(taskRepository, never()).save(any(Task.class));
@@ -167,7 +166,7 @@ class TaskBoardServiceImplTest {
         when(taskListRepository.findByName(TASK_LIST_PERSONAL)).thenReturn(Optional.of(taskList));
         when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(task));
 
-        assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskDto));
+        assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskRequestDto));
 
         verify(taskListRepository).findByName(TASK_LIST_PERSONAL);
         verify(taskRepository).findByListId(taskList.id());
