@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Builder
 public record TaskDto(
         Long taskId,
-        TaskRequestDto requestDto) {
+        TaskRequestDto taskRequest) {
 
     public static Task toEntity(TaskRequestDto taskRequestDto) {
         return Task.builder()
@@ -25,7 +25,7 @@ public record TaskDto(
                 .build();
         return TaskDto.builder()
                 .taskId(entity.id())
-                .requestDto(taskRequest)
+                .taskRequest(taskRequest)
                 .build();
     }
 }

@@ -56,7 +56,7 @@ public class TaskBoardController {
     ) {
         taskBoardService.addTaskToList(listName, taskRequest);
         return ResponseEntity.status(HttpStatus.OK)
-                .body("Task added to the task list =" + listName);
+                .body("Task added to the task list=" + listName);
     }
 
 

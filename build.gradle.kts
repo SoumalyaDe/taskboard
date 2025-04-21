@@ -51,5 +51,4 @@ tasks.withType<Test> {
 
 tasks.bootBuildImage {
     imageName.set("worldline/taskboard:${project.version}")
-    builder.set("paketobuildpacks/builder-jammy-base:latest")
 }

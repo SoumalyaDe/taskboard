@@ -81,8 +81,8 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
 
         lists = taskBoardService.getAllLists();
         assertEquals(2, lists.getFirst().getTasks().size());
-        assertEquals("Call client", lists.getFirst().getTasks().getFirst().requestDto().name());
-        assertEquals("Call client", lists.getFirst().getTasks().get(1).requestDto().name());
+        assertEquals("Call client", lists.getFirst().getTasks().getFirst().taskRequest().name());
+        assertEquals("Call client", lists.getFirst().getTasks().get(1).taskRequest().name());
         assertTrue(lists.get(1).getTasks().isEmpty());
 
         // Update a task
@@ -94,14 +94,14 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
                 .requestDto(newTaskRequest)
                 .build();
         var updatedTask = taskBoardService.updateTask(task1.taskId(), newTask);
-        assertEquals("Call client updated", updatedTask.requestDto().name());
-        assertEquals("Discuss project updates and timeline", updatedTask.requestDto().description());
+        assertEquals("Call client updated", updatedTask.taskRequest().name());
+        assertEquals("Discuss project updates and timeline", updatedTask.taskRequest().description());
 
         // Delete a task
         taskBoardService.deleteTask(task2.taskId());
         lists = taskBoardService.getAllLists();
         assertEquals(1, lists.getFirst().getTasks().size());
-        assertEquals("Finish report", lists.getFirst().getTasks().getFirst().requestDto().name());
+        assertEquals("Finish report", lists.getFirst().getTasks().getFirst().taskRequest().name());
 
         // Move task to another list
        /* taskBoardService.moveTaskToList(task1.id(), personalList.id());

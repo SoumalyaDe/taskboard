@@ -121,8 +121,8 @@ class TaskBoardServiceImplTest {
 
         assertNotNull(result);
         assertEquals(TEST_TASK_ID_1, result.taskId());
-        assertEquals(taskRequestDto.name(), result.requestDto().name());
-        assertEquals(taskRequestDto.description(), result.requestDto().description());
+        assertEquals(taskRequestDto.name(), result.taskRequest().name());
+        assertEquals(taskRequestDto.description(), result.taskRequest().description());
         verify(taskRepository).save(any(Task.class));
     }
 
