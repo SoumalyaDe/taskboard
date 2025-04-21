@@ -1,4 +1,4 @@
-package com.worldline.taskboard;
+package com.worldline.taskboard.integrationtests;
 
 import org.springframework.boot.test.context.TestConfiguration;
 

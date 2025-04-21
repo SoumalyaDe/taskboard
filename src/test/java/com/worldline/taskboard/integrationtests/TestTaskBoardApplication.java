@@ -1,5 +1,6 @@
-package com.worldline.taskboard;
+package com.worldline.taskboard.integrationtests;
 
+import com.worldline.taskboard.TaskBoardApplication;
 import org.springframework.boot.SpringApplication;
 
 public class TestTaskBoardApplication {

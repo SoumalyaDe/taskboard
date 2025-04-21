@@ -45,9 +45,33 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+// Define custom source set for integration tests
+sourceSets {
+    create("integrationTest") {
+        java.srcDir("src/test/java")
+        resources.srcDir("src/test/resources")
+    }
+}
+
+// Create the 'integrationTest' task to run only integration tests
+val integrationTest by
+tasks.registering(Test::class, fun Test.() {
+    group = "verification"
+    description = "Runs the integration tests"
+    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+    classpath = sourceSets["integrationTest"].runtimeClasspath
+
+// Include tests that match the pattern "*IT"
+    include("**/*IT.class")
+})
+
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    // Exclude tests that match the pattern "*IT" (integration tests)
+    exclude("**/*IT.class")
 }
+
 
 tasks.bootBuildImage {
     imageName.set("worldline/taskboard:${project.version}")

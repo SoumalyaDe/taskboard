@@ -8,15 +8,14 @@ import com.worldline.taskboard.repository.TaskRepository;
 import com.worldline.taskboard.service.TaskBoardService;
 import com.worldline.taskboard.service.TaskBoardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.worldline.taskboard.TestContstants.*;
+import static com.worldline.taskboard.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled
-public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
+//@Disabled
+public class TaskBoardServiceIT extends BaseIntegrationTest {
 
 //    @Container
 //    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
@@ -67,14 +66,14 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
                 .description("Discuss the new project")
                 .build();
         var task1 = TaskDto.builder()
-                .requestDto(taskRequest1)
+                .taskRequest(taskRequest1)
                 .build();
         var taskRequest2 = TaskRequestDto.builder()
                 .name("Send email")
                 .description("Send email to all stakeholders")
                 .build();
         var task2 = TaskDto.builder()
-                .requestDto(taskRequest2)
+                .taskRequest(taskRequest2)
                 .build();
         taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest1);
         taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest2);
@@ -91,7 +90,7 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
                 .description("Discuss and finalize the new project")
                 .build();
         var newTask = TaskDto.builder()
-                .requestDto(newTaskRequest)
+                .taskRequest(newTaskRequest)
                 .build();
         var updatedTask = taskBoardService.updateTask(task1.taskId(), newTask);
         assertEquals("Call client updated", updatedTask.taskRequest().name());
@@ -137,7 +136,7 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
                 .description(TASK_DESCRIPTION_TEST)
                 .build();
         var task = TaskDto.builder()
-                .requestDto(taskRequest1)
+                .taskRequest(taskRequest1)
                 .build();
         taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskRequest1);
         var taskRequest2 = TaskRequestDto.builder()
@@ -145,7 +144,7 @@ public class TaskBoardServiceIntegrationTest extends BaseIntegrationTest {
                 .description(TASK_DESCRIPTION_ANOTHER)
                 .build();
         var anotherTask = TaskDto.builder()
-                .requestDto(taskRequest2)
+                .taskRequest(taskRequest2)
                 .build();
 
         var exception = assertThrows(

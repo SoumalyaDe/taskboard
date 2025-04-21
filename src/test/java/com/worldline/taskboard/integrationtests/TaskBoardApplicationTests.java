@@ -1,4 +1,4 @@
-package com.worldline.taskboard;
+package com.worldline.taskboard.integrationtests;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

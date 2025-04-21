@@ -1,8 +1,8 @@
 package com.worldline.taskboard;
 
-public final class TestContstants {
+public final class TestConstants {
 
-    private TestContstants() {
+    private TestConstants() {
         //Just to prevent instantiation
     }
 

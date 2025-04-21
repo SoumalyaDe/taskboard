@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.worldline.taskboard.TestContstants.*;
+import static com.worldline.taskboard.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,6 +48,7 @@ class TaskBoardServiceImplTest {
     void setUp() {
         now = LocalDateTime.now();
 
+        Object TestConstants;
         taskList = TaskList.builder()
                 .id(TEST_TASK_LIST_ID)
                 .name(TASK_LIST_PERSONAL)

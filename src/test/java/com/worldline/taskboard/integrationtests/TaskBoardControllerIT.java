@@ -1,4 +1,4 @@
 package com.worldline.taskboard.integrationtests;
 
-public class TaskBoardControllerIntegrationTest {
+public class TaskBoardControllerIT {
 }
