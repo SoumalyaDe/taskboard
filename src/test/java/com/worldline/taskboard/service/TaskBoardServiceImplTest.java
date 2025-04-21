@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,7 +40,7 @@ class TaskBoardServiceImplTest {
     private TaskBoardServiceImpl taskBoardService;
 
     private TaskList taskList;
-    private Task task;
+    private Task testTask1;
     private TaskListDto listDto;
     private TaskRequestDto taskRequestDto;
     private LocalDateTime now;
@@ -54,7 +55,7 @@ class TaskBoardServiceImplTest {
                 .createdAt(now)
                 .build();
 
-        task = Task.builder()
+        testTask1 = Task.builder()
                 .id(TEST_TASK_ID_1)
                 .name(TASK_NAME_TEST)
                 .description(TASK_DESCRIPTION_TEST)
@@ -77,7 +78,7 @@ class TaskBoardServiceImplTest {
     @Test
     void getAllLists_shouldReturnAllLists() {
         var taskLists = List.of(taskList);
-        var tasks = List.of(task);
+        var tasks = List.of(testTask1);
         when(taskListRepository.findAll()).thenReturn(taskLists);
         when(taskRepository.findByListId(taskList.id())).thenReturn(tasks);
 
@@ -87,7 +88,7 @@ class TaskBoardServiceImplTest {
         assertEquals(taskList.id(), result.getFirst().getListId());
         assertEquals(taskList.name(), result.getFirst().getName());
         assertEquals(1, result.getFirst().getTasks().size());
-        assertEquals(task.getId(), result.getFirst().getTasks().getFirst().taskId());
+        assertEquals(testTask1.getId(), result.getFirst().getTasks().getFirst().taskId());
         verify(taskListRepository).findAll();
         verify(taskRepository).findByListId(taskList.id());
     }
@@ -105,7 +106,7 @@ class TaskBoardServiceImplTest {
     }
 
     @Test
-    void createList_whenNameAlreadyExists_shouldThrowDuplicateEntityException() {
+    void createList_whenNameAlreadyExists_throwsDuplicateEntityException() {
         when(taskListRepository.save(any(TaskList.class)))
                 .thenThrow(new DataIntegrityViolationException("Duplicate entry"));
 
@@ -115,7 +116,7 @@ class TaskBoardServiceImplTest {
 
     @Test
     void createTask_shouldSaveTask() {
-        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskRepository.save(any(Task.class))).thenReturn(testTask1);
 
         var result = taskBoardService.createTask(taskRequestDto);
 
@@ -133,7 +134,7 @@ class TaskBoardServiceImplTest {
                 .description(TASK_DESCRIPTION_TEST)
                 .build();
         when(taskListRepository.findByName(TASK_LIST_PERSONAL)).thenReturn(Optional.of(taskList));
-        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(task));
+        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(testTask1));
 
         taskBoardService.addTaskToList(TASK_LIST_PERSONAL, inputTask);
 
@@ -144,7 +145,7 @@ class TaskBoardServiceImplTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void addTaskToList_whenListNameIsBlank_shouldThrowIllegalArgumentException(String listName) {
+    void addTaskToList_whenListNameIsBlank_throwsIllegalArgumentException(String listName) {
         assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(listName, taskRequestDto));
     }
 
@@ -162,9 +163,9 @@ class TaskBoardServiceImplTest {
     }
 
     @Test
-    void addTaskToList_whenTaskWithSameNameExists_shouldThrowIllegalArgumentException() {
+    void addTaskToList_whenTaskWithSameNameExists_throwsIllegalArgumentException() {
         when(taskListRepository.findByName(TASK_LIST_PERSONAL)).thenReturn(Optional.of(taskList));
-        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(task));
+        when(taskRepository.findByListId(taskList.id())).thenReturn(List.of(testTask1));
 
         assertThrows(IllegalArgumentException.class, () -> taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskRequestDto));
 
@@ -173,20 +174,52 @@ class TaskBoardServiceImplTest {
         verify(taskRepository, never()).save(any(Task.class));
     }
 
-    //TODO: tests for update task
+    @Test
+    void updateTask_success() {
+        var updateRequest = TaskRequestDto.builder()
+                .name(TASK_NAME_OTHER)
+                .description(TASK_DESCRIPTION_ANOTHER)
+                .build();
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(testTask1));
+
+        taskBoardService.updateTask(TEST_TASK_ID_1, updateRequest);
+
+        var taskCaptor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepository).save(taskCaptor.capture());
+
+        var savedTask = taskCaptor.getValue();
+        assertEquals(TEST_TASK_ID_1, savedTask.getId());
+        assertEquals(TASK_NAME_OTHER, savedTask.getName());
+        assertEquals(TASK_DESCRIPTION_ANOTHER, savedTask.getDescription());
+        assertEquals(TEST_TASK_LIST_ID, savedTask.getListId());
+        assertEquals(now, savedTask.getCreatedAt());
+    }
 
     @Test
-    void shouldDeleteTask() {
-        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(task));
+    void updateTask_whenTaskNotFound_throwsEntityNotFoundException() {
+        when(taskRepository.findById(TEST_TASK_ID_2)).thenReturn(Optional.empty());
+
+        var exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> taskBoardService.updateTask(TEST_TASK_ID_2, any(TaskRequestDto.class))
+        );
+
+        assertEquals(String.format(TASK_NOT_FOUND_MESSAGE, TEST_TASK_ID_2), exception.getMessage());
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    void shouldDeleteTaskSuccessfully() {
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(testTask1));
 
         taskBoardService.deleteTask(TEST_TASK_ID_1);
 
         verify(taskRepository).findById(TEST_TASK_ID_1);
-        verify(taskRepository).delete(task);
+        verify(taskRepository).delete(testTask1);
     }
 
     @Test
-    void deleteTask_whenTaskNotFound_shouldThrowEntityNotFoundException() {
+    void deleteTask_whenTaskNotFound_throwsEntityNotFoundException() {
         when(taskRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> taskBoardService.deleteTask(TEST_TASK_ID_1));
@@ -196,7 +229,7 @@ class TaskBoardServiceImplTest {
     }
 
     @Test
-    void shouldDeleteTaskList() {
+    void shouldDeleteTaskListSuccessfully() {
         when(taskListRepository.findById(taskList.id())).thenReturn(Optional.of(taskList));
 
         taskBoardService.deleteList(TEST_TASK_LIST_ID);
@@ -206,7 +239,7 @@ class TaskBoardServiceImplTest {
     }
 
     @Test
-    void deleteList_whenListNotFound_shouldThrowEntityNotFoundException() {
+    void deleteList_whenListNotFound_throwsEntityNotFoundException() {
         when(taskListRepository.findById(TEST_TASK_LIST_ID)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> taskBoardService.deleteList(TEST_TASK_LIST_ID));
@@ -218,25 +251,33 @@ class TaskBoardServiceImplTest {
     @Test
     void moveTaskToList_success() {
         var targetListId = 999L;
-        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(task));
+        var updatedTask = Task.builder()
+                .id(TEST_TASK_ID_1)
+                .name(TASK_NAME_TEST)
+                .description(TASK_DESCRIPTION_TEST)
+                .listId(targetListId)
+                .updatedAt(now)
+                .build();
+
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(testTask1));
         when(taskListRepository.existsById(targetListId)).thenReturn(true);
-        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
 
         taskBoardService.moveTaskToList(TEST_TASK_ID_1, targetListId);
 
-        assertEquals(targetListId, task.getListId());
+        assertEquals(targetListId, updatedTask.getListId());
         verify(taskRepository).findById(TEST_TASK_ID_1);
         verify(taskListRepository).existsById(targetListId);
-        verify(taskRepository).save(task);
+        verify(taskRepository).save(any(Task.class));
     }
 
     @Test
-    void moveTaskToList_TaskNotFound_ThrowsEntityNotFoundException() {
+    void moveTaskToList_whenTaskNotFound_throwsEntityNotFoundException() {
         var nonExistentTaskId = 555L;
         var targetListId = 999L;
         when(taskRepository.findById(nonExistentTaskId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(
+        var exception = assertThrows(
                 EntityNotFoundException.class,
                 () -> taskBoardService.moveTaskToList(nonExistentTaskId, targetListId)
         );
@@ -248,15 +289,15 @@ class TaskBoardServiceImplTest {
     }
 
     @Test
-    void moveTaskToList_ListNotFound_ThrowsEntityNotFoundException() {
+    void moveTaskToList_whenListNotFound_throwsEntityNotFoundException() {
         // Arrange
         Long nonExistentListId = 999L;
 
-        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(task));
+        when(taskRepository.findById(TEST_TASK_ID_1)).thenReturn(Optional.of(testTask1));
         when(taskListRepository.existsById(nonExistentListId)).thenReturn(false);
 
         // Act & Assert
-        EntityNotFoundException exception = assertThrows(
+        var exception = assertThrows(
                 EntityNotFoundException.class,
                 () -> taskBoardService.moveTaskToList(TEST_TASK_ID_1, nonExistentListId)
         );

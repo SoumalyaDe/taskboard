@@ -101,8 +101,15 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public TaskDto updateTask(Long taskId, TaskDto task) {
-        return null;
+    public void updateTask(Long taskId, TaskRequestDto taskRequestDto) {
+        var task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(TASK_NOT_FOUND_MESSAGE, taskId)));
+        var taskToSave = task.toBuilder()
+                .name(taskRequestDto.name())
+                .description(taskRequestDto.description())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        taskRepository.save(taskToSave);
     }
 
     @Override
@@ -130,7 +137,10 @@ public class TaskBoardServiceImpl implements TaskBoardService {
         if (!taskListRepository.existsById(newListId)) {
             throw new EntityNotFoundException(String.format(TASK_LIST_NOT_FOUND_MESSAGE, newListId));
         }
-        task.setListId(newListId);
-        taskRepository.save(task);
+        var taskToSave = task.toBuilder()
+                .listId(newListId)
+                .updatedAt(LocalDateTime.now())
+                .build();
+        taskRepository.save(taskToSave);
     }
 }

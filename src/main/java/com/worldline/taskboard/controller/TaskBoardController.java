@@ -1,6 +1,5 @@
 package com.worldline.taskboard.controller;
 
-import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
 import com.worldline.taskboard.model.dtos.TaskRequestDto;
 import com.worldline.taskboard.service.TaskBoardService;
@@ -67,12 +66,12 @@ public class TaskBoardController {
             @ApiResponse(responseCode = "404", description = "Task not found"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
-    public ResponseEntity<TaskDto> updateTask(
+    public ResponseEntity<String> updateTask(
             @PathVariable Long taskId,
-            @Valid @RequestBody TaskDto task) {
-        var taskDto = taskBoardService.updateTask(taskId, task);
+            @Valid @RequestBody TaskRequestDto taskRequest) {
+        taskBoardService.updateTask(taskId, taskRequest);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(taskDto);
+                .body(String.format("Task with id=%d and name='%s' updated successfully", taskId, taskRequest.name()));
     }
 
     @DeleteMapping("/tasks/{taskId}")

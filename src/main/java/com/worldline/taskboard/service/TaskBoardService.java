@@ -16,7 +16,7 @@ public interface TaskBoardService {
 
     void addTaskToList(String taskListName, TaskRequestDto taskRequestDto);
 
-    TaskDto updateTask(Long taskId, TaskDto task);
+    void updateTask(Long taskId, TaskRequestDto taskRequestDto);
 
     void deleteTask(Long taskId);
 

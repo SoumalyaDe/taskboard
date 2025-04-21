@@ -1,13 +1,15 @@
 package com.worldline.taskboard.model.dtos;
 
 import com.worldline.taskboard.model.entities.Task;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
+@Builder(toBuilder = true)
 public record TaskDto(
         Long taskId,
+        @NotNull
         TaskRequestDto taskRequest) {
 
     public static Task toEntity(TaskRequestDto taskRequestDto) {
