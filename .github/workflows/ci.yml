@@ -54,8 +54,8 @@ jobs:
         run: ./gradlew test
 
       # ✅ Run Integration Tests
-      #      - name: Run Integration Tests
-      #        run: ./gradlew integrationTest
+      - name: Run Integration Tests
+        run: ./gradlew integrationTest
 
       # ✅ Set up Docker
       - name: Set up Docker

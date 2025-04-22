@@ -74,7 +74,6 @@ tasks.registering(Test::class, fun Test.() {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-
     // Exclude tests that match the pattern "*IT" (integration tests)
     exclude("**/*IT.class")
 }

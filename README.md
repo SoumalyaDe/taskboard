@@ -18,7 +18,7 @@ following features:
 ### Technologies Used
 
 - Java 21
-- Spring Boot 3.4.4
+- Spring Boot 3.2.5
 - Spring Data JDBC (for persistence)
 - PostgreSQL (relational database)
 - Liquibase (for database schema management)
@@ -38,73 +38,52 @@ following features:
 
 ### Setup and Running Locally
 
-1. Clone the Repository
+#### 1. Clone the Repository
 
 ```
-git clone <repository-url>
+git clone git@github.com:SoumalyaDe/taskboard.git
 cd taskboard
 ```
 
-2. Start PostgreSQL
+#### 2. Start PostgreSQL
 
 Run PostgreSQL using Docker:
 
 `docker run -d --name postgres -p 5432:5432 -e POSTGRES_DB=taskboard -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres postgres:16-alpine`
 
-3. Build the Application
+#### 3. Build the Application
 
-`./gradlew build`
+`./gradlew clean build`
 
-4. Run the Application
+#### 4. Run the Application
 
 `./gradlew bootRun`
+Alternatively, the spring boot application can be started from the `TaskBoardApplication` class in IDE.
 
 The application will be available at http://localhost:8080.
 
-5. Access Swagger UI
+#### 5. Run Tests
+- **Unit Test**
+  - Use this to run the unit tests (excluding the integration tests): `./gradlew test`.
+  - Alternatively, unit tests can be run from the respective test classes from the IDE as well.
+- **Integration Test**
+  - The integration tests use Testcontainers to spin up a PostgreSQL container automatically.
+  - Use this command to run integration tests: `./gradlew integrationTest`.
+
+#### 6. Access Swagger UI
 
 Swagger UI is available at http://localhost:8080/swagger-ui.html for testing the API endpoints interactively.
-Username: admin, Password: password for local
-
-![img_1.png](img_1.png)
-
-6. Run Tests
-
-The integration tests use Testcontainers to spin up a PostgreSQL container automatically:
-
-`./gradlew test`
+Username: admin
+Password: password
 
 ### API Endpoints
-
-1. **GET** /api/taskboard/lists - View all lists and tasks
-
-2. **POST** /api/taskboard/lists - Create a new list 
-(
-```
-body: 
-   {
-      "name": "List Name"
-   }
-```
-)
-
-3. **POST** /api/taskboard/lists/{listId}/tasks - Add a task to a list (body: {"name": "Task Name", "description": "Task
-   Description"})
-
-4. **PUT** /api/taskboard/tasks/{taskId} - Update a task (body: {"name": "Updated Name", "description": "Updated
-   Description"})
-
-5. **DELETE** /api/taskboard/tasks/{taskId} - Delete a task
-
-6. **DELETE** /api/taskboard/lists/{listId} - Delete a list
-
-7. **PUT** /api/taskboard/tasks/{taskId}/move - Move a task to another list (body: {"newListId": 2})
+![img_2.png](img_2.png)
 
 
 ### Database Schema Management
 
 The application uses Liquibase to manage the database schema. The schema is defined in
-```src/main/resources/db/changelog/db.changelog-master.yaml.```
+```src/main/resources/db/db.changelog-master.yaml.```
 Liquibase runs automatically on application startup to apply migrations.
 
 ### Dockerize the Application
@@ -118,83 +97,12 @@ Liquibase runs automatically on application startup to apply migrations.
 docker run -d -p 8080:8080 --link postgres:postgres -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/taskboard
 worldline/taskboard:0.0.1-SNAPSHOT
 
-### Deploy to AWS
 
-Push Docker Image to ECR:
+### Continuous Integration
 
-Create an ECR repository:
+This project uses GitHub Actions for continuous integration (CI) to ensure code quality and reliability. 
+The CI pipeline runs automatically on every push to the main branch and on pull requests. The workflow is defined in `.github/workflows/ci.yml`
 
-aws ecr create-repository --repository-name worldline/taskboard --region <your-region>
-
-Authenticate Docker to ECR:
-
-aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<
-your-region>.amazonaws.com
-
-Tag and push the image:
-
-docker tag worldline/taskboard:0.0.1-SNAPSHOT <account-id>.dkr.ecr.<your-region>.amazonaws.com/worldline/taskboard:
-0.0.1-SNAPSHOT
-docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/worldline/taskboard:0.0.1-SNAPSHOT
-
-Set Up RDS PostgreSQL:
-
-Create a PostgreSQL RDS instance in AWS.
-
-Update application.properties with the RDS endpoint, username, and password.
-
-Deploy to ECS with Fargate:
-
-Create an ECS cluster:
-
-aws ecs create-cluster --cluster-name taskboard-cluster --region <your-region>
-
-Create a task definition (task-definition.json):
-
-{
-"family": "taskboard",
-"networkMode": "awsvpc",
-"containerDefinitions": [
-{
-"name": "taskboard",
-"image": "<account-id>.dkr.ecr.<your-region>.amazonaws.com/worldline/taskboard:0.0.1-SNAPSHOT",
-"essential": true,
-"portMappings": [
-{
-"containerPort": 8080,
-"hostPort": 8080
-}
-],
-"environment": [
-{
-"name": "SPRING_DATASOURCE_URL",
-"value": "jdbc:postgresql://<rds-endpoint>:5432/taskboard"
-},
-{
-"name": "SPRING_DATASOURCE_USERNAME",
-"value": "<rds-username>"
-},
-{
-"name": "SPRING_DATASOURCE_PASSWORD",
-"value": "<rds-password>"
-}
-]
-}
-],
-"requiresCompatibilities": ["FARGATE"],
-"cpu": "256",
-"memory": "512"
-}
-
-Register the task definition:
-
-aws ecs register-task-definition --cli-input-json file://task-definition.json --region <your-region>
-
-Create a service:
-
-aws ecs create-service --cluster taskboard-cluster --service-name taskboard-service --task-definition taskboard
---desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[<subnet-id>]
-,securityGroups=[<security-group-id>],assignPublicIp=ENABLED}" --region <your-region>
 
 ### Developer Onboarding
 
