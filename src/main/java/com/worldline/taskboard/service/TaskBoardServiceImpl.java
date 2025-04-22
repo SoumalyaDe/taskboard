@@ -4,7 +4,7 @@ import com.worldline.taskboard.exceptions.DuplicateEntityException;
 import com.worldline.taskboard.exceptions.EntityNotFoundException;
 import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
-import com.worldline.taskboard.model.dtos.TaskRequestDto;
+import com.worldline.taskboard.model.dtos.TaskDetailsDto;
 import com.worldline.taskboard.model.entities.Task;
 import com.worldline.taskboard.model.entities.TaskList;
 import com.worldline.taskboard.repository.TaskListRepository;
@@ -68,8 +68,8 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public TaskDto createTask(TaskRequestDto taskRequestDto) {
-        var taskEntity = TaskDto.toEntity(taskRequestDto)
+    public TaskDto createTask(TaskDetailsDto taskDetailsDto) {
+        var taskEntity = TaskDto.toEntity(taskDetailsDto)
                 .toBuilder()
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -79,7 +79,7 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public void addTaskToList(String taskListName, TaskRequestDto taskRequestDto) {
+    public void addTaskToList(String taskListName, TaskDetailsDto taskDetailsDto) {
         if (Strings.isBlank(taskListName)) {
             throw new IllegalArgumentException("List name must not be blank!");
         }
@@ -88,10 +88,10 @@ public class TaskBoardServiceImpl implements TaskBoardService {
                         new EntityNotFoundException(String.format("Task list with name %s not found", taskListName)));
         if (taskRepository.findByListId(taskListEntity.id()).stream()
                 .map(Task::getName)
-                .anyMatch(taskRequestDto.name()::equals)) {
-            throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskRequestDto.name(), taskListName));
+                .anyMatch(taskDetailsDto.name()::equals)) {
+            throw new IllegalArgumentException(String.format("A task with name '%s' already exists for the task list '%s'.", taskDetailsDto.name(), taskListName));
         } else {
-            var taskEntity = TaskDto.toEntity(taskRequestDto)
+            var taskEntity = TaskDto.toEntity(taskDetailsDto)
                     .toBuilder()
                     .listId(taskListEntity.id())
                     .build();
@@ -101,12 +101,12 @@ public class TaskBoardServiceImpl implements TaskBoardService {
 
     @Override
     @Transactional
-    public void updateTask(Long taskId, TaskRequestDto taskRequestDto) {
+    public void updateTask(Long taskId, TaskDetailsDto taskDetailsDto) {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(TASK_NOT_FOUND_MESSAGE, taskId)));
         var taskToSave = task.toBuilder()
-                .name(taskRequestDto.name())
-                .description(taskRequestDto.description())
+                .name(taskDetailsDto.name())
+                .description(taskDetailsDto.description())
                 .updatedAt(LocalDateTime.now())
                 .build();
         taskRepository.save(taskToSave);

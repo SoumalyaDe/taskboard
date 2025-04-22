@@ -1,9 +1,11 @@
-package com.worldline.taskboard.integrationtests;
+package com.worldline.taskboard;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -25,7 +27,11 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-master.yaml");
+        registry.add("spring.security.enabled", () -> "false");
     }
+
+    @Autowired
+    protected TestRestTemplate restTemplate;
 
     @BeforeAll
     static void beforeAll() {
@@ -34,6 +40,10 @@ public abstract class BaseIntegrationTest {
 
     protected String getBasePath() {
         return "/api/taskboard";
+    }
+
+    protected String getBaseUri() {
+        return "http://localhost";
     }
 
 }

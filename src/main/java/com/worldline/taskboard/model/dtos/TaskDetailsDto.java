@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 @Builder
-public record TaskRequestDto(
+public record TaskDetailsDto(
     @NotBlank(message = "Task name must not be blank")
     @Size(min = 1, max = 100, message = "Task name must not exceed 100 characters")
     String name,

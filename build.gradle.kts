@@ -42,14 +42,21 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.rest-assured:json-path")
+    testImplementation("io.rest-assured:xml-path")
 }
 
 // Define custom source set for integration tests
 sourceSets {
+    val main by getting
+    val test by getting
+
     create("integrationTest") {
-        java.srcDir("src/test/java")
-        resources.srcDir("src/test/resources")
+        java.srcDir("src/integrationTest/java")
+        resources.srcDir("src/integrationTest/resources")
+        compileClasspath += main.output + configurations.testRuntimeClasspath.get()
+        runtimeClasspath += output + compileClasspath
     }
 }
 
@@ -72,6 +79,9 @@ tasks.withType<Test> {
     exclude("**/*IT.class")
 }
 
+tasks.named<ProcessResources>("processIntegrationTestResources") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
 
 tasks.bootBuildImage {
     imageName.set("worldline/taskboard:${project.version}")

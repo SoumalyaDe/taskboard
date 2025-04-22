@@ -2,7 +2,7 @@ package com.worldline.taskboard.service;
 
 import com.worldline.taskboard.model.dtos.TaskDto;
 import com.worldline.taskboard.model.dtos.TaskListDto;
-import com.worldline.taskboard.model.dtos.TaskRequestDto;
+import com.worldline.taskboard.model.dtos.TaskDetailsDto;
 
 import java.util.List;
 
@@ -12,11 +12,11 @@ public interface TaskBoardService {
     TaskListDto createList(String name);
 
     //TODO: Might be needed in future, so created in advance
-    TaskDto createTask(TaskRequestDto taskRequestDto);
+    TaskDto createTask(TaskDetailsDto taskDetailsDto);
 
-    void addTaskToList(String taskListName, TaskRequestDto taskRequestDto);
+    void addTaskToList(String taskListName, TaskDetailsDto taskDetailsDto);
 
-    void updateTask(Long taskId, TaskRequestDto taskRequestDto);
+    void updateTask(Long taskId, TaskDetailsDto taskDetailsDto);
 
     void deleteTask(Long taskId);
 

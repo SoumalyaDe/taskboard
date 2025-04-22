@@ -1,7 +1,7 @@
 package com.worldline.taskboard.controller;
 
 import com.worldline.taskboard.model.dtos.TaskListDto;
-import com.worldline.taskboard.model.dtos.TaskRequestDto;
+import com.worldline.taskboard.model.dtos.TaskDetailsDto;
 import com.worldline.taskboard.service.TaskBoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -51,7 +51,7 @@ public class TaskBoardController {
     })
     public ResponseEntity<String> addTaskToList(
             @PathVariable String listName,
-            @Valid @RequestBody TaskRequestDto taskRequest
+            @Valid @RequestBody TaskDetailsDto taskRequest
     ) {
         taskBoardService.addTaskToList(listName, taskRequest);
         return ResponseEntity.status(HttpStatus.OK)
@@ -68,7 +68,7 @@ public class TaskBoardController {
     })
     public ResponseEntity<String> updateTask(
             @PathVariable Long taskId,
-            @Valid @RequestBody TaskRequestDto taskRequest) {
+            @Valid @RequestBody TaskDetailsDto taskRequest) {
         taskBoardService.updateTask(taskId, taskRequest);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(String.format("Task with id=%d and name='%s' updated successfully", taskId, taskRequest.name()));

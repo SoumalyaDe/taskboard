@@ -10,24 +10,24 @@ import java.time.LocalDateTime;
 public record TaskDto(
         Long taskId,
         @NotNull
-        TaskRequestDto taskRequest) {
+        TaskDetailsDto taskDetails) {
 
-    public static Task toEntity(TaskRequestDto taskRequestDto) {
+    public static Task toEntity(TaskDetailsDto taskDetailsDto) {
         return Task.builder()
-                .name(taskRequestDto.name())
-                .description(taskRequestDto.description())
+                .name(taskDetailsDto.name())
+                .description(taskDetailsDto.description())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
 
     public static TaskDto of(Task entity) {
-        var taskRequest = TaskRequestDto.builder()
+        var taskRequest = TaskDetailsDto.builder()
                 .name(entity.getName())
                 .description(entity.getDescription())
                 .build();
         return TaskDto.builder()
                 .taskId(entity.getId())
-                .taskRequest(taskRequest)
+                .taskDetails(taskRequest)
                 .build();
     }
 }
