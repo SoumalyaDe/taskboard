@@ -11,7 +11,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 
+import static com.worldline.taskboard.IntegrationTestConstants.*;
+import static org.junit.Assert.assertThrows;
+
+@DataJdbcTest
 public class TaskBoardServiceIT extends BaseIntegrationTest {
 
 
@@ -33,14 +38,14 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
     @Test
     void testFullWorkflow() {
         // Create lists
-        var workList = taskBoardService.createList(IntegrationTestConstants.TASK_LIST_WORK);
-        var personalList = taskBoardService.createList(IntegrationTestConstants.TASK_LIST_PERSONAL);
+        var workList = taskBoardService.createList(TASK_LIST_WORK);
+        var personalList = taskBoardService.createList(TASK_LIST_PERSONAL);
 
         // View all lists
         var lists = taskBoardService.getAllLists();
         Assertions.assertEquals(2, lists.size());
-        Assertions.assertEquals(IntegrationTestConstants.TASK_LIST_WORK, lists.getFirst().getName());
-        Assertions.assertEquals(IntegrationTestConstants.TASK_LIST_PERSONAL, lists.get(1).getName());
+        Assertions.assertEquals(TASK_LIST_WORK, lists.getFirst().getName());
+        Assertions.assertEquals(TASK_LIST_PERSONAL, lists.get(1).getName());
 
         // Add tasks to a list
         var taskRequest1 = TaskDetailsDto.builder()
@@ -57,8 +62,8 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
         var task2 = TaskDto.builder()
                 .taskDetails(taskRequest2)
                 .build();
-        taskBoardService.addTaskToList(IntegrationTestConstants.TASK_LIST_WORK, taskRequest1);
-        taskBoardService.addTaskToList(IntegrationTestConstants.TASK_LIST_WORK, taskRequest2);
+        taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest1);
+        taskBoardService.addTaskToList(TASK_LIST_WORK, taskRequest2);
 
         lists = taskBoardService.getAllLists();
         Assertions.assertEquals(2, lists.getFirst().getTasks().size());
@@ -97,11 +102,11 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
 
     @Test
     void createList_shouldThrowExceptionOnDuplicateName() {
-        taskBoardService.createList(IntegrationTestConstants.TASK_LIST_WORK);
+        taskBoardService.createList(TASK_LIST_WORK);
 
         var exception = Assertions.assertThrows(
                 DuplicateEntityException.class,
-                () -> taskBoardService.createList(IntegrationTestConstants.TASK_LIST_WORK)
+                () -> taskBoardService.createList(TASK_LIST_WORK)
         );
 
         Assertions.assertEquals("A task list with name 'Work' already exists.", exception.getMessage());
@@ -109,12 +114,12 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
 
     @Test
     void addTaskToList_shouldThrowExceptionOnDuplicateTaskName() {
-        var taskList = taskBoardService.createList(IntegrationTestConstants.TASK_LIST_PERSONAL);
+        var taskList = taskBoardService.createList(TASK_LIST_PERSONAL);
         var taskRequest1 = TaskDetailsDto.builder()
                 .name(IntegrationTestConstants.TASK_NAME_TEST)
                 .description(IntegrationTestConstants.TASK_DESCRIPTION_TEST)
                 .build();
-        taskBoardService.addTaskToList(IntegrationTestConstants.TASK_LIST_PERSONAL, taskRequest1);
+        taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskRequest1);
         var taskRequest2 = TaskDetailsDto.builder()
                 .name(IntegrationTestConstants.TASK_NAME_TEST)
                 .description(IntegrationTestConstants.TASK_DESCRIPTION_ANOTHER)
@@ -127,20 +132,24 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
         Assertions.assertEquals("A task with name 'Personal Task' already exists for the task list 'Personal'.", exception.getMessage());
     }
 
-   /* @Test
+    @Test
     void addTaskToList_shouldThrowExceptionWhenListNotFound() {
-        IllegalArgumentException exception = assertThrows(
+        var taskDetails = TaskDetailsDto.builder()
+                .name(TASK_NAME_TEST)
+                .description(TASK_DESCRIPTION_ANOTHER)
+                .build();
+        var exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> taskBoardService.addTaskToList(999L, "Task", "Description")
+                () -> taskBoardService.addTaskToList(TASK_LIST_PERSONAL, taskDetails)
         );
 
-        assertEquals("Task list not found with id: 999", exception.getMessage());
+        Assertions.assertEquals("Task list not found with id: 999", exception.getMessage());
     }
 
-    @Test
+/*    @Test
     void updateTask_shouldThrowExceptionOnDuplicateTaskName() {
-        TaskList list = taskBoardService.createList(TASK_LIST_WORK);
-        Task task1 = taskBoardService.addTaskToList(list.id(), "Task 1", "Description 1");
+        var list = taskBoardService.createList(TASK_LIST_WORK);
+        var task1 = taskBoardService.addTaskToList(list.id(), "Task 1", "Description 1");
         taskBoardService.addTaskToList(list.id(), "Task 2", "Description 2");
 
         UniqueNameViolationException exception = assertThrows(
@@ -153,14 +162,14 @@ public class TaskBoardServiceIT extends BaseIntegrationTest {
 
     @Test
     void moveTaskToList_shouldThrowExceptionOnDuplicateTaskName() {
-        TaskList list1 = taskBoardService.createList(TASK_LIST_WORK);
-        TaskList list2 = taskBoardService.createList(TASK_LIST_PERSONAL);
+        var list1 = taskBoardService.createList(TASK_LIST_WORK);
+        var list2 = taskBoardService.createList(TASK_LIST_PERSONAL);
 
-        Task task = taskBoardService.addTaskToList(list1.id(), "Task", "Description");
+        var task = taskBoardService.addTaskToList(list1.getListId(), "Task", "Description");
         taskBoardService.addTaskToList(list2.id(), "Task", "Another Description");
 
-        UniqueNameViolationException exception = assertThrows(
-                UniqueNameViolationException.class,
+        var exception = assertThrows(
+                DuplicateEntityException.class,
                 () -> taskBoardService.moveTaskToList(task.id(), list2.id())
         );
 
