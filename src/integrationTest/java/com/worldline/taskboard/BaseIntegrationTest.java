@@ -26,7 +26,7 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-master.yaml");
+        registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-test.xml");
         registry.add("spring.security.enabled", () -> "false");
     }
 

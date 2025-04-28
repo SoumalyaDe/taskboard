@@ -6,7 +6,7 @@ spring:
     username: postgres
     password: postgres
     liquibase:
-      change-log: classpath:db/db.changelog-master.yaml
+      change-log: classpath:db/db.changelog-test.xml
       enabled: true
   jpa:
     hibernate:
