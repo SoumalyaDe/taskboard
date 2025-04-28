@@ -14,16 +14,6 @@ spring:
   security:
     enabled: false
 
-# Log levels
-#logging:
-#  level:
-#    org:
-#      springframework: INFO
-#      testcontainers: INFO
-#    com:
-#      worldline:
-#        taskboard: DEBUG
-
 # Server configuration
 server:
   port: 0

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 
 import static com.worldline.taskboard.IntegrationTestConstants.TASK_LIST_PERSONAL;
@@ -18,8 +19,8 @@ import static com.worldline.taskboard.IntegrationTestConstants.TASK_LIST_WORK;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TaskBoardControllerIT extends BaseIntegrationTest {
 
-/*    @LocalServerPort
-    private int port;*/
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private TaskListRepository taskListRepository;
@@ -31,7 +32,7 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         RestAssured.baseURI = getBaseUri();
-//        RestAssured.port = port;
+        RestAssured.port = port;
 
         // Clean up before each test to ensure isolation
         taskRepository.deleteAll();

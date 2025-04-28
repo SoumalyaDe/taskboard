@@ -47,6 +47,12 @@ dependencies {
     testImplementation("io.rest-assured:xml-path")
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+    // Exclude tests that match the pattern "*IT" (integration tests)
+    // exclude("**/*IT.class")
+}
+
 // Define custom source set for integration tests
 sourceSets {
     val main by getting
@@ -71,12 +77,6 @@ tasks.registering(Test::class, fun Test.() {
 // Include tests that match the pattern "*IT"
     include("**/*IT.class")
 })
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    // Exclude tests that match the pattern "*IT" (integration tests)
-    exclude("**/*IT.class")
-}
 
 tasks.named<ProcessResources>("processIntegrationTestResources") {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
