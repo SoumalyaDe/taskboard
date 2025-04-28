@@ -8,6 +8,8 @@ spring:
     liquibase:
       change-log: classpath:db/db.changelog-test.xml
       enabled: true
+      searchPath: classpath:db/changelogs
+      duplicateFileMode: WARN
   jpa:
     hibernate:
       ddl-auto: create-drop

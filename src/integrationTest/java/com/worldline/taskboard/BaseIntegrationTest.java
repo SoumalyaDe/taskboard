@@ -10,7 +10,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 
 
-//@Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class BaseIntegrationTest {
 
@@ -27,6 +26,7 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-test.xml");
+        registry.add("spring.liquibase.duplicateFileMode", () -> "WARN");
         registry.add("spring.security.enabled", () -> "false");
     }
 

@@ -6,17 +6,26 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.worldline.taskboard.IntegrationTestConstants.TASK_LIST_PERSONAL;
 import static com.worldline.taskboard.IntegrationTestConstants.TASK_LIST_WORK;
 
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class TaskBoardControllerIT extends BaseIntegrationTest {
 
     @LocalServerPort
@@ -28,6 +37,27 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Container
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("taskboard-test")
+            .withUsername("test")
+            .withPassword("test")
+            .withLabel("reuse", "true");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-test.xml");
+        registry.add("spring.liquibase.duplicateFileMode", () -> "WARN");
+        registry.add("spring.security.enabled", () -> "false");
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        postgres.start();
+    }
 
     @BeforeEach
     void setUp() {
@@ -50,35 +80,35 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
     void getAllLists_shouldReturnEmptyList_whenNoListsExist() {
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
-                .body("", Matchers.hasSize(0));
+                    .statusCode(HttpStatus.OK.value())
+                    .body("", Matchers.hasSize(0));
     }
 
     @Test
     void createList_shouldCreateNewList_whenValidNameProvided() {
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", TASK_LIST_WORK)
+                    .contentType(ContentType.JSON)
+                    .queryParam("taskListName", TASK_LIST_WORK)
                 .when()
-                .post("/lists")
+                    .post("/lists")
                 .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .body("name", Matchers.equalTo(TASK_LIST_WORK));
+                    .statusCode(HttpStatus.CREATED.value())
+                    .body("name", Matchers.equalTo(TASK_LIST_WORK));
 
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
-                .body("", Matchers.hasSize(1))
-                .body("[0].name", Matchers.equalTo(TASK_LIST_WORK));
+                    .statusCode(HttpStatus.OK.value())
+                    .body("", Matchers.hasSize(1))
+                    .body("[0].name", Matchers.equalTo(TASK_LIST_WORK));
     }
 
     @Test
@@ -86,39 +116,39 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
         // First create a list
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", TASK_LIST_WORK)
+                    .contentType(ContentType.JSON)
+                    .queryParam("taskListName", TASK_LIST_WORK)
                 .when()
-                .post("/lists");
+                    .post("/lists");
 
         // Then add a task to it
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .body("""
-                        {
-                            "name": "Test Task",
-                            "description": "This is a test task"
-                        }
-                        """)
+                    .contentType(ContentType.JSON)
+                    .body("""
+                            {
+                                "name": "Test Task",
+                                "description": "This is a test task"
+                            }
+                            """)
                 .when()
-                .post("/lists/{listName}/tasks", TASK_LIST_WORK)
+                    .post("/lists/{listName}/tasks", TASK_LIST_WORK)
                 .then()
-                .statusCode(HttpStatus.OK.value())
-                .body(Matchers.containsString("Task added to the task list=" + TASK_LIST_WORK));
+                    .statusCode(HttpStatus.OK.value())
+                    .body(Matchers.containsString("Task added to the task list=" + TASK_LIST_WORK));
 
         // Verify task was added
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
-                .body("find{it.name == '" + TASK_LIST_WORK + "'}.tasks",
-                        Matchers.hasSize(1))
-                .body("find{it.name == '" + TASK_LIST_WORK + "'}.tasks[0].name",
-                        Matchers.equalTo("Test Task"));
+                    .statusCode(HttpStatus.OK.value())
+                    .body("find{it.name == '" + TASK_LIST_WORK + "'}.tasks",
+                            Matchers.hasSize(1))
+                    .body("find{it.name == '" + TASK_LIST_WORK + "'}.tasks[0].name",
+                            Matchers.equalTo("Test Task"));
     }
 
     @Test
@@ -126,58 +156,58 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
         // Create list
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", TASK_LIST_PERSONAL)
+                    .contentType(ContentType.JSON)
+                    .queryParam("taskListName", TASK_LIST_PERSONAL)
                 .when()
-                .post("/lists");
+                    .post("/lists");
 
         // Add task
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .body("""
-                        {
-                            "name": "Original Task",
-                            "description": "Original description"
-                        }
-                        """)
+                    .contentType(ContentType.JSON)
+                    .body("""
+                            {
+                                "name": "Original Task",
+                                "description": "Original description"
+                            }
+                            """)
                 .when()
-                .post("/lists/{listName}/tasks", TASK_LIST_PERSONAL);
+                    .post("/lists/{listName}/tasks", TASK_LIST_PERSONAL);
 
         // Get the task ID
         var taskId = RestAssured.given()
-                .contentType(ContentType.JSON)
-                .when()
-                .get("/lists")
-                .then()
-                .extract()
-                .jsonPath()
-                .getLong("find{it.name == '" + TASK_LIST_PERSONAL + "'}.tasks[0].id");
+                                    .contentType(ContentType.JSON)
+                                .when()
+                                    .get("/lists")
+                                .then()
+                                    .extract()
+                                    .jsonPath()
+                                    .getLong("find{it.name == '" + TASK_LIST_PERSONAL + "'}.tasks[0].id");
 
         // Update the task
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .body("""
-                        {
-                            "name": "Updated Task",
-                            "description": "Updated description"
-                        }
-                        """)
+                    .contentType(ContentType.JSON)
+                    .body("""
+                    {
+                        "name": "Updated Task",
+                        "description": "Updated description"
+                    }
+                    """)
                 .when()
-                .put("/tasks/{taskId}", taskId)
+                    .put("/tasks/{taskId}", taskId)
                 .then()
-                .statusCode(HttpStatus.OK.value())
-                .body(Matchers.containsString("Updated Task"));
+                    .statusCode(HttpStatus.OK.value())
+                    .body(Matchers.containsString("Updated Task"));
 
         // Verify update
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                    .statusCode(HttpStatus.OK.value())
                 .body("find{it.name == '" + TASK_LIST_PERSONAL + "'}.tasks[0].name",
                         Matchers.equalTo("Updated Task"))
                 .body("find{it.name == '" + TASK_LIST_PERSONAL + "'}.tasks[0].description",
@@ -189,15 +219,15 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
         // Create list
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", TASK_LIST_WORK)
+                    .contentType(ContentType.JSON)
+                    .queryParam("taskListName", TASK_LIST_WORK)
                 .when()
-                .post("/lists");
+                    .post("/lists");
 
         // Add task to the list
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .body("""
                         {
                             "name": "Task To Delete",
@@ -205,35 +235,35 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
                         }
                         """)
                 .when()
-                .post("/lists/{listName}/tasks", TASK_LIST_WORK);
+                    .post("/lists/{listName}/tasks", TASK_LIST_WORK);
 
         // Get the task ID
         var taskId = RestAssured.given()
-                .contentType(ContentType.JSON)
-                .when()
-                .get("/lists")
-                .then()
-                .extract()
-                .jsonPath()
-                .getLong("find{it.name == '" + TASK_LIST_WORK + "'}.tasks[0].id");
+                                    .contentType(ContentType.JSON)
+                                .when()
+                                    .get("/lists")
+                                .then()
+                                    .extract()
+                                    .jsonPath()
+                                    .getLong("find{it.name == '" + TASK_LIST_WORK + "'}.tasks[0].id");
 
         // Delete the task
-        RestAssured
+       RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .delete("/tasks/{taskId}", taskId)
+                    .delete("/tasks/{taskId}", taskId)
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                    .statusCode(HttpStatus.OK.value());
 
         // Verify task was deleted
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                    .statusCode(HttpStatus.OK.value())
                 .body("find{it.name == '" + TASK_LIST_WORK + "'}.tasks", Matchers.hasSize(0));
     }
 
@@ -241,32 +271,32 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
     void deleteList_shouldRemoveList_whenListExists() {
         // Create list
         var listId = RestAssured.given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", TASK_LIST_PERSONAL)
-                .when()
-                .post("/lists")
-                .then()
-                .extract()
-                .jsonPath()
-                .getLong("id");
+                                    .contentType(ContentType.JSON)
+                                    .queryParam("taskListName", TASK_LIST_PERSONAL)
+                                .when()
+                                    .post("/lists")
+                                .then()
+                                    .extract()
+                                    .jsonPath()
+                                    .getLong("id");
 
         // Delete the list
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .delete("/lists/{listId}", listId)
+                    .delete("/lists/{listId}", listId)
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                    .statusCode(HttpStatus.OK.value());
 
         // Verify list was deleted
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
+                    .contentType(ContentType.JSON)
                 .when()
-                .get("/lists")
+                    .get("/lists")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                    .statusCode(HttpStatus.OK.value())
                 .body("", Matchers.not(Matchers.hasItem(Matchers.hasEntry("name", TASK_LIST_PERSONAL))));
     }
 
@@ -298,11 +328,11 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body("""
-                        {
-                            "name": "Task To Move",
-                            "description": "This task will be moved"
-                        }
-                        """)
+                {
+                    "name": "Task To Move",
+                    "description": "This task will be moved"
+                }
+                """)
                 .when()
                 .post("/lists/{listName}/tasks", sourceListName);
 
@@ -341,46 +371,46 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
     void createList_shouldReturnBadRequest_whenNameIsBlank() {
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .queryParam("taskListName", "")
+                    .contentType(ContentType.JSON)
+                    .queryParam("taskListName", "")
                 .when()
-                .post("/lists")
+                    .post("/lists")
                 .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
     @Test
     void addTaskToList_shouldReturnNotFound_whenListDoesNotExist() {
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .body("""
+                    .contentType(ContentType.JSON)
+                    .body("""
                         {
                             "name": "Test Task",
                             "description": "This is a test task"
                         }
                         """)
                 .when()
-                .post("/lists/{listName}/tasks", "NonExistentList")
+                    .post("/lists/{listName}/tasks", "NonExistentList")
                 .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                    .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
     @Test
     void updateTask_ShouldReturnNotFound_WhenTaskDoesNotExist() {
         RestAssured
                 .given()
-                .contentType(ContentType.JSON)
-                .body("""
+                    .contentType(ContentType.JSON)
+                    .body("""
                         {
                             "name": "Updated Task",
                             "description": "Updated description"
                         }
                         """)
                 .when()
-                .put("/tasks/{taskId}", 999999)
+                    .put("/tasks/{taskId}", 999999)
                 .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+                    .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
 
