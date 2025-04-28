@@ -6,7 +6,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.worldline.taskboard.IntegrationTestConstants.TASK_LIST_PERSONAL;
@@ -36,28 +31,6 @@ public class TaskBoardControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private TaskRepository taskRepository;
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("taskboard-test")
-            .withUsername("test")
-            .withPassword("test")
-            .withLabel("reuse", "true");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.liquibase.change-log", () -> "classpath:db/db.changelog-test.xml");
-        registry.add("spring.liquibase.duplicateFileMode", () -> "WARN");
-        registry.add("spring.security.enabled", () -> "false");
-    }
-
-    @BeforeAll
-    static void beforeAll() {
-        postgres.start();
-    }
 
     @BeforeEach
     void setUp() {
