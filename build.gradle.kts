@@ -50,7 +50,7 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     // Exclude tests that match the pattern "*IT" (integration tests)
-    // exclude("**/*IT.class")
+    exclude("**/*IT.class")
 }
 
 // Define custom source set for integration tests
